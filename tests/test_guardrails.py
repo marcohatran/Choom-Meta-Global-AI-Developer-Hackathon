@@ -53,3 +53,23 @@ def test_api_validation_and_quota(monkeypatch):
     assert c.post("/api/speaking/grade", data={"part": "part1", "question": "q"},
                   files={"audio": ("a.wav", b"not a wav", "audio/wav")}).status_code in (422, 429)
     assert c.get("/api/nope").status_code == 404
+
+
+def test_official_writing_rules():
+    pack = pytest.importorskip("app.private.pack")
+    q = "Some people think that governments should invest more in public transport than in building new roads."
+    essay = q + " I agree with this idea because buses are cheap."
+    assert pack.own_words(essay, q) == 9                       # copied rubric is discounted
+    g = pack.calibrate_writing(raw([]), essay, "task2", q)
+    assert {c["band"] for c in g["criteria"]} == {1.0}        # 20 words or fewer -> Band 1
+    one_para = " ".join(["Cities need better buses and trains for workers."] * 30)
+    g = pack.calibrate_writing({**raw([]), "criteria": [{"key": k, "band": 7.0, "comment": ""} for k in WRITING_KEYS]},
+                               one_para, "task2", q)
+    assert next(c["band"] for c in g["criteria"] if c["key"] == "coherence") == 5.0
+
+
+def test_letter_endpoint_and_task_type():
+    c = TestClient(app)
+    q = c.get("/api/writing/letter").json()["question"]
+    assert "Begin your letter" in q and q.count("•") == 3
+    assert c.post("/api/writing/grade", json={"task_type": "map", "question": q, "essay": "x" * 30}).status_code == 422

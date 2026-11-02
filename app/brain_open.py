@@ -27,7 +27,11 @@ def speech_metrics(transcript: str, duration_ms: int) -> dict:
             "wpm": round(words / max(duration_ms / 60000, 1e-6)) if duration_ms else None}
 
 
-def calibrate_writing(grade: dict, essay: str, task_type: str) -> dict:
+def own_words(essay: str, question: str = "") -> int:
+    return len(essay.split())
+
+
+def calibrate_writing(grade: dict, essay: str, task_type: str, question: str = "") -> dict:
     return grade
 
 

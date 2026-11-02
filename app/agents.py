@@ -47,7 +47,7 @@ PLAN_SCHEMA = _obj({
     "tips": _arr(S),
 })
 CHART_SPEC_SCHEMA = _obj({
-    "title": S, "chart_type": {"type": "string", "enum": ["bar", "line", "pie"]}, "unit": S,
+    "title": S, "chart_type": {"type": "string", "enum": ["bar", "line", "pie", "table"]}, "unit": S,
     "categories": _arr(S), "series": _arr(_obj({"name": S, "values": _arr(N)})), "question": S,
 })
 CHART_READ_SCHEMA = _obj({"readable": B, "categories": _arr(S), "series": _arr(_obj({"name": S, "values": _arr(N)}))})
@@ -133,11 +133,11 @@ async def new_chart() -> dict:
 
 
 async def grade_writing(task_type: str, question: str, essay: str, chart: dict | None) -> dict:
-    payload = {"task_type": task_type, "question": question, "essay": essay, "word_count": len(essay.split())}
+    payload = {"task_type": task_type, "question": question, "essay": essay, "word_count": pack.own_words(essay, question)}
     if chart:
         payload["chart_data"] = chart["truth"]
     raw = await muse.json_call(pack.writing_examiner(task_type), payload, _grade_schema(WRITING_KEYS), effort="medium")
-    return pack.calibrate_writing(gateway(raw, essay, WRITING_KEYS), essay, task_type)
+    return pack.calibrate_writing(gateway(raw, essay, WRITING_KEYS), essay, task_type, question)
 
 
 # ---------- Speaking ----------

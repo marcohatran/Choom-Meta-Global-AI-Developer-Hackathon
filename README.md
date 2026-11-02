@@ -9,9 +9,9 @@ About 3.5 million IELTS tests are taken every year at roughly $180–340 per att
 | Feature | Meta models |
 | --- | --- |
 | **Planner**: builds a plan from the target band, test date and minutes per day, and says honestly whether the goal is realistic | Muse Spark (structured output) |
-| **Writing examiner**: grades Task 1 and Task 2 on the four official criteria, quotes the exact sentences that cost marks, and writes a version one band higher | Muse Spark (structured output) |
+| **Writing examiner**: grades Academic Task 1, General Training Task 1 letters and Task 2 essays on the four official criteria (May 2023 band descriptors), quotes the exact sentences that cost marks, and writes a version one band higher | Muse Spark (structured output) |
 | **Handwriting**: photograph a handwritten essay and Choom transcribes it, keeping your mistakes so they can be graded | Muse Spark vision |
-| **Task 1 generator**: Spark designs realistic exam data, Muse Image draws the chart, and Spark vision reads the image back so the essay is graded against the chart the learner actually saw | Muse Spark, Muse Image, Muse Spark vision |
+| **Task 1 generator**: Spark designs realistic exam data, Muse Image draws the chart or table, and Spark vision reads the image back so the essay is graded against the chart the learner actually saw | Muse Spark, Muse Image, Muse Spark vision |
 | **Speaking examiner**: record an answer in the browser. Voice Transcribe keeps fillers ("um", "uh"), code measures pace, fillers and word variety, then Spark grades the four speaking criteria | Muse Voice Transcribe, Muse Spark |
 | **Coach agent**: reads your real scores with tools (parallel tool calls), asks a drill-writer sub-agent for targeted practice, and rewrites today's mission | Muse Wonder (tool calling) + Muse Spark sub-agent |
 

@@ -16,7 +16,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 from app import agents, muse
-from app.content import SPEAKING_QUESTIONS, TASK2_QUESTIONS
+from app.content import GT_LETTERS, SPEAKING_QUESTIONS, TASK2_QUESTIONS
 from app.store import db, now, today
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s %(message)s")
@@ -125,6 +125,11 @@ async def task2_question():
     return {"question": random.choice(TASK2_QUESTIONS)}
 
 
+@app.get("/api/writing/letter")
+async def letter_question():
+    return {"question": random.choice(GT_LETTERS)}
+
+
 @app.get("/api/writing/task1")
 async def task1_existing():
     charts = await db.list("charts", 20)
@@ -170,7 +175,7 @@ async def writing_ocr(photo: UploadFile = File(...), _: str = Depends(quota)):
 
 
 class WritingIn(BaseModel):
-    task_type: str = Field(pattern="^(task1|task2)$")
+    task_type: str = Field(pattern="^(task1|task2|letter)$")
     question: str = Field(min_length=10, max_length=1500)
     essay: str = Field(min_length=20, max_length=6000)
     chart_id: str | None = Field(None, max_length=40)

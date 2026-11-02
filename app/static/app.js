@@ -121,7 +121,7 @@ async function writing() {
   const task = sessionStorage.getItem("wtask") || "task2";
   view.innerHTML = `
   <div class="page-h"><div><span class="label">Writing examiner</span><h1>Write. Get graded like the real exam.</h1></div>
-    <div class="seg" role="group" aria-label="Task"><button data-t="task1" aria-pressed="${task === "task1"}">Task 1 · Academic</button><button data-t="task2" aria-pressed="${task === "task2"}">Task 2 · Essay</button></div></div>
+    <div class="seg" role="group" aria-label="Task"><button data-t="task1" aria-pressed="${task === "task1"}">Task 1 · Academic</button><button data-t="letter" aria-pressed="${task === "letter"}">Task 1 · Letter (GT)</button><button data-t="task2" aria-pressed="${task === "task2"}">Task 2 · Essay</button></div></div>
   <div class="grid2">
     <section class="card stack">
       <div id="prompt" class="stack"><p class="muted">Loading task…</p></div>
@@ -136,7 +136,7 @@ async function writing() {
   view.querySelectorAll(".seg button").forEach((b) => (b.onclick = () => { sessionStorage.setItem("wtask", b.dataset.t); writing(); }));
   const essay = $("#essay"), wc = $("#wc");
   essay.value = sessionStorage.getItem("draft_" + task) || "";
-  const count = () => { const n = essay.value.trim().split(/\s+/).filter(Boolean).length; wc.textContent = `${n} words · aim ${task === "task1" ? 150 : 250}+`; };
+  const count = () => { const n = essay.value.trim().split(/\s+/).filter(Boolean).length; wc.textContent = `${n} words · aim ${task === "task2" ? 250 : 150}+`; };
   essay.oninput = () => { sessionStorage.setItem("draft_" + task, essay.value); count(); }; count();
 
   let current = { question: "", chart_id: null };
@@ -159,7 +159,12 @@ async function writing() {
     $("#newchart").onclick = () => loadChart(true);
   }
   if (task === "task1") await loadChart(false);
-  else {
+  else if (task === "letter") {
+    const show = async () => { const r = await api("/api/writing/letter"); current = { question: r.question, chart_id: null };
+      $("#prompt").innerHTML = `<div class="row sp"><h2>Task 1 · General Training</h2><button class="btn ghost sm" id="newq">Another letter</button></div><p style="font:500 17px/1.5 var(--serif);white-space:pre-line">${esc(r.question)}</p><p class="label">20 minutes in the exam. Task 2 counts twice as much as Task 1.</p>`;
+      $("#newq").onclick = show; };
+    await show();
+  } else {
     const r = await api("/api/writing/task2"); current = { question: r.question, chart_id: null };
     const show = (q) => { $("#prompt").innerHTML = `<div class="row sp"><h2>Task 2</h2><button class="btn ghost sm" id="newq">Another question</button></div><p style="font:500 18px/1.5 var(--serif)">${esc(q)}</p><p class="label">Write at least 250 words. 40 minutes in the exam.</p>`;
       $("#newq").onclick = async () => { const r2 = await api("/api/writing/task2"); current.question = r2.question; show(r2.question); }; };
