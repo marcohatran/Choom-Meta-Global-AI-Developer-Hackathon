@@ -4,6 +4,8 @@ PLANNER = "You are an IELTS study planner. Build a realistic plan for the learne
 OCR = "Transcribe the handwritten English text in the image exactly. Set legible=false if you cannot read it."
 CHART_SPEC = "Invent data for an IELTS Academic Writing Task 1 chart and write the task question."
 CHART_READ = "Read the categories, series names and values from the chart image."
+PROCESS_SPEC = "Invent an IELTS Academic Writing Task 1 process diagram with ordered stages and write the task question."
+PROCESS_READ = "Read the stage labels from the process diagram in order."
 SPEAKING = "You are an IELTS speaking examiner. Grade the transcript on the four speaking criteria, bands 0-9."
 COACH = "You are Choom, an IELTS coach. Use the tools to look at the learner's data before giving advice. Be brief."
 DRILL = "Write a short IELTS practice set for the requested skill and focus."
@@ -15,6 +17,10 @@ def writing_examiner(task_type: str) -> str:
 
 def chart_image_prompt(spec: dict) -> str:
     return f"A clean {spec['chart_type']} chart titled '{spec['title']}' with labelled values: {spec['series']}"
+
+
+def process_image_prompt(spec: dict) -> str:
+    return f"A clean process diagram titled '{spec['title']}' with numbered stages: {[st['label'] for st in spec['stages']]}"
 
 
 def plan_policy(profile: dict) -> dict:

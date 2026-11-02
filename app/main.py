@@ -136,13 +136,13 @@ async def task1_existing():
     if not charts:
         return {"chart": None}
     c = random.choice(charts)
-    return {"chart": {k: c[k] for k in ("id", "title", "question", "verified")}}
+    return {"chart": {**{k: c[k] for k in ("id", "title", "question", "verified")}, "kind": c.get("kind", "chart")}}
 
 
 @app.post("/api/writing/task1/new")
-async def task1_new(_: str = Depends(quota)):
-    c = await agents.new_chart()
-    return {"chart": {k: c[k] for k in ("id", "title", "question", "verified")}}
+async def task1_new(kind: str = "chart", _: str = Depends(quota)):
+    c = await (agents.new_process() if kind == "process" else agents.new_chart())
+    return {"chart": {**{k: c[k] for k in ("id", "title", "question", "verified")}, "kind": c.get("kind", "chart")}}
 
 
 @app.get("/api/charts/{cid}.webp")

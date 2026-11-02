@@ -50,6 +50,8 @@ CHART_SPEC_SCHEMA = _obj({
     "title": S, "chart_type": {"type": "string", "enum": ["bar", "line", "pie", "table"]}, "unit": S,
     "categories": _arr(S), "series": _arr(_obj({"name": S, "values": _arr(N)})), "question": S,
 })
+PROCESS_SPEC_SCHEMA = _obj({"title": S, "cyclical": B, "stages": _arr(_obj({"label": S, "detail": S})), "question": S})
+PROCESS_READ_SCHEMA = _obj({"readable": B, "labels": _arr(S)})
 CHART_READ_SCHEMA = _obj({"readable": B, "categories": _arr(S), "series": _arr(_obj({"name": S, "values": _arr(N)}))})
 OCR_SCHEMA = _obj({"legible": B, "text": S})
 DRILL_SCHEMA = _obj({"title": S, "items": _arr(_obj({"prompt": S, "options": _arr(S), "answer": S, "explanation": S}))})
@@ -128,6 +130,34 @@ async def new_chart() -> dict:
         {"categories": spec["categories"], "series": spec["series"]}
     doc = {"title": spec["title"], "question": spec["question"], "unit": spec["unit"], "truth": truth,
            "verified": read["readable"], "image": base64.b64encode(img).decode(), "created": now()}
+    doc["id"] = await db.add("charts", doc)
+    return doc
+
+
+def _norm(x: str) -> str:
+    return re.sub(r"[^a-z0-9]+", " ", re.sub(r"^\s*(stage\s*)?\d+\s*[.):-]?", "", x.lower())).strip()
+
+
+async def new_process() -> dict:
+    """Task 1 process diagram: Spark designs the stages, Muse Image draws them, Spark vision must read every label back in order."""
+    hint = random.choice(["chocolate", "instant noodles", "tea", "olive oil", "paper recycling", "glass bottle recycling",
+                          "bricks", "cement", "silk", "coffee", "the water cycle", "the life cycle of a frog",
+                          "the life cycle of a salmon", "wind power to homes", "honey", "drinking water treatment",
+                          "solar hot water", "orange juice", "leather", "plastic recycling"])
+    spec = await muse.json_call(pack.PROCESS_SPEC, {"topic": hint, "seed": random.randint(1, 10_000)}, PROCESS_SPEC_SCHEMA,
+                                effort="medium")
+    spec["stages"] = spec["stages"][:9]
+    want = [_norm(st["label"]) for st in spec["stages"]]
+    for _ in range(2):  # one redraw if the image garbles a label
+        img = await muse.image(pack.process_image_prompt(spec))
+        read = await muse.json_call(pack.PROCESS_READ, "Read every stage label in order.", PROCESS_READ_SCHEMA,
+                                    images=[data_url(img, "image/webp")])
+        verified = read["readable"] and [_norm(x) for x in read["labels"]] == want
+        if verified:
+            break
+    doc = {"title": spec["title"], "question": spec["question"], "unit": "", "kind": "process", "verified": verified,
+           "truth": {"stages": [{"n": i, **st} for i, st in enumerate(spec["stages"], 1)], "cyclical": spec["cyclical"]},
+           "image": base64.b64encode(img).decode(), "created": now()}
     doc["id"] = await db.add("charts", doc)
     return doc
 
